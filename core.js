@@ -98,13 +98,13 @@ export function order_import(order, source) {
 		let path = columns[0]
 		let level = path.split('/').length - 1
 		let quantity = parseInt(columns[1])
-		if (level === 2) {
+		if (level < 2) return 
+		else if (level === 2) {
 			order.items.push(order_item_create(path))
 		} else {
 			if (order.items.length > 0) {
 				let item = order.items[order.items.length - 1]
-				let node = order_item_find(item, path).node
-				node.quantity = quantity
+				order_item_increment(item, path)
 			}
 		}
 	})
@@ -121,6 +121,7 @@ export function order_print(order) {
 	let total = 0
 	order.items.forEach(function(item) {
 		order_item_walk(item, [item.node], Infinity, function(node) {
+			if (node.quantity === 0) return
 			let padding = ''.padStart(node.level / 2, ' ')
 			let node_ = catalog_find(system.catalog, node.path).node
 			total = total + node_.price
@@ -164,7 +165,7 @@ export function order_item_increment(item, path) {
 	let allowed = true
 	let { node, parent } = order_item_find(item, path)
 	let cat = catalog_find(system.catalog, path)
-	if (cat.parent && cat.parent.single_select) {
+	if (cat.parent.single_select) {
 		for (const sibling of parent.map.values()) {
 			sibling.quantity = 0
 		}
@@ -200,12 +201,31 @@ export function order_item_find(item, path) {
 	return find(item.node, path.split(item.path)[1])
 }
 
-export function order_item_inflate(item) {
-	return
+export function order_item_deflate(item) {
+	
+	if (true) return
+	order_item_walk(item, [item.node], Infinity, function(node, treepath) {
+		let parent = treepath[treepath.length - 2]
+		if (! parent) return
+		parent.map.set(node.name, {
+			map: node.map,
+			path: node.path,
+			name: node.name,
+			level: node.level,
+			quantity: node.quantity
+		})
+	})
 }
 
-export function order_item_deflate(item) {
-	return
+export function order_item_inflate(item) {
+	
+	if (true) return
+	order_item_walk(item, [item.node], Infinity, function(node) {
+		let quantity = node.quantity
+		let node_ = catalog_find(system.catalog, node.path)
+		Object.assign(node, node_)
+		node.quantity = quantity
+	})
 }
 
 export function order_item_validate(item, order) {
@@ -232,34 +252,29 @@ export function order_item_validate(item, order) {
 export function order_item_serialize(item, array) {
 	
 	order_item_walk(item, [item.node], Infinity, function(node) {
-		if (node.quantity > 0) {
-			array.push(`${node.path} ${node.quantity}`)
-		}
+		if (node.quantity === 0) return
+		array.push(`${node.path} ${node.quantity}`)
 	})
 }
 
 export function order_item_walk(item, array, depth, fn) {
 	
-	depth = depth || Infinity
-	if (array.length - 1 > depth) return
-	let node = array[array.length - 1]
-	if (node && node.quantity > 0) fn(node)
-	let level = array.length - 1
-	if (level % 2 === 0 && node.quantity === 0) return
-	for (const key of node.map.keys()) {
-		let array_ = [...array, node.map.get(key)]
-		order_item_walk(system.catalog, array_, depth, fn)
+	const filter = function(node, array) {
+		let level = array.length - 1
+		if (level < 2 === 0) return false
+		if (level % 2 === 0 && node.quantity === 0) return false
+		return true
 	}
+	walk(array, depth, filter, fn)
 }
 
 export function order_item_menus(item, fn) {
 	
 	let array = catalog_find(system.catalog, item.path).treepath
-	let filter = function(node, array) {
+	const filter = function(node, array) {
 		let level = array.length - 1
 		if (level % 2 === 1) return true
-		let node_ = order_item_find(item, node.path).node
-		return node_.quantity > 0
+		return order_item_find(item, node.path).node.quantity > 0
 	}
 	catalog_walk(system.catalog, array, Infinity, filter, function(node, array) {
 		let level = array.length - 1
@@ -303,7 +318,8 @@ export function walk(treepath, depth, filter, fn) {
 	filter = filter || function() { return true }
 	if (treepath.length - 1 > depth) return
 	let node = treepath[treepath.length - 1]
-	if (node && node.path) fn(node, treepath)
+	if (! node.name) return
+	fn(node, treepath)
 	if (! filter(node, treepath)) return
 	for (const key of node.map.keys()) {
 		let treepath_ = [...treepath, node.map.get(key)]
