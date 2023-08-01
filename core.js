@@ -158,6 +158,25 @@ export function order_item_create(path) {
 	return item
 }
 
+export function order_item_set(item, path, quantity) {
+	
+	order_item_inflate(item)
+	let allowed = true
+	let { node, parent } = order_item_find(item, path)
+	let cat = catalog_find(system.catalog, path)
+	if (quantity > 1 && ! cat.node.multiples) {
+		allowed = false
+	}
+	if (allowed) {
+		node.quantity = quantity
+		order_item_deflate(item)
+		system_emit(`order-item-set`, { item: item, path: path })
+	} else {
+		order_item_deflate(item)
+		system_emit(`order-item-set-not`, { item: item, path: path, reason: 'multiples-forbidden' })
+	}
+}
+
 export function order_item_increment(item, path) {
 	
 	order_item_inflate(item)
@@ -193,25 +212,6 @@ export function order_item_decrement(item, path) {
 	} else {
 		system_emit(`order-item-decremented-not`, { item: item, path: path })
 		order_item_deflate(item)
-	}
-}
-
-export function order_item_set(item, path, quantity) {
-	
-	order_item_inflate(item)
-	let allowed = true
-	let { node, parent } = order_item_find(item, path)
-	let cat = catalog_find(system.catalog, path)
-	if (quantity > 1 && ! cat.node.multiples) {
-		allowed = false
-	}
-	if (allowed) {
-		node.quantity = quantity
-		order_item_deflate(item)
-		system_emit(`order-item-set`, { item: item, path: path })
-	} else {
-		order_item_deflate(item)
-		system_emit(`order-item-set-not`, { item: item, path: path, reason: 'multiples-forbidden' })
 	}
 }
 
