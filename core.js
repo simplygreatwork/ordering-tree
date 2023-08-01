@@ -11,7 +11,7 @@ export function system_emit(message, data) {
 
 export function catalog_initialize(source) {
 	
-	let catalog = { source: source, tree: { map: new Map() }, errors: [] }
+	let catalog = { source: source, tree: { name: '/', map: new Map() }, errors: [] }
 	let tree = catalog.tree
 	catalog.lines = source.split('\n')
 	catalog.lines.forEach(function(line, index) {
@@ -120,13 +120,13 @@ export function order_print(order) {
 	
 	let total = 0
 	order.items.forEach(function(item) {
-		order_item_walk(item, [item.node], Infinity, function(node) {
+		order_item_walk_active(item, [item.node], Infinity, function(node) {
 			if (node.quantity === 0) return
 			let padding = ''.padStart(node.level / 2, ' ')
 			let node_ = catalog_find(system.catalog, node.path).node
 			total = total + node_.price
 			let price = node_.price === 0 ? '' : ' $' + node_.price.toFixed(2)
-			console.log(`${padding}${node.label} ${node.quantity} ${price}`)
+			console.log(`${padding}${node_.label} ${node.quantity} ${price}`)
 		})
 	})
 	console.log(`Total: $${total}`)
@@ -156,6 +156,7 @@ export function order_item_create(path) {
 	let node = catalog_find(system.catalog, path).node
 	item.node = structuredClone(node)
 	item.node.quantity = 1
+	order_item_deflate(item)
 	return item
 }
 
@@ -203,7 +204,6 @@ export function order_item_find(item, path) {
 
 export function order_item_deflate(item) {
 	
-	if (true) return
 	order_item_walk(item, [item.node], Infinity, function(node, treepath) {
 		let parent = treepath[treepath.length - 2]
 		if (! parent) return
@@ -219,7 +219,6 @@ export function order_item_deflate(item) {
 
 export function order_item_inflate(item) {
 	
-	if (true) return
 	order_item_walk(item, [item.node], Infinity, function(node) {
 		let quantity = node.quantity
 		let node_ = catalog_find(system.catalog, node.path)
@@ -251,17 +250,19 @@ export function order_item_validate(item, order) {
 
 export function order_item_serialize(item, array) {
 	
-	order_item_walk(item, [item.node], Infinity, function(node) {
+	order_item_walk_active(item, [item.node], Infinity, function(node) {
 		if (node.quantity === 0) return
 		array.push(`${node.path} ${node.quantity}`)
 	})
 }
 
 export function order_item_walk(item, array, depth, fn) {
+	walk(array, depth, null, fn)
+}
+
+export function order_item_walk_active(item, array, depth, fn) {
 	
-	const filter = function(node, array) {
-		let level = array.length - 1
-		if (level < 2 === 0) return false
+	const filter = function(node, array, level) {
 		if (level % 2 === 0 && node.quantity === 0) return false
 		return true
 	}
@@ -271,16 +272,19 @@ export function order_item_walk(item, array, depth, fn) {
 export function order_item_menus(item, fn) {
 	
 	let array = catalog_find(system.catalog, item.path).treepath
-	const filter = function(node, array) {
-		let level = array.length - 1
-		if (level % 2 === 1) return true
-		return order_item_find(item, node.path).node.quantity > 0
+	const filter = function(node, array, level) {
+		node = order_item_find(item, node.path).node
+		if (level % 2 === 0 && node.quantity === 0) return false
+		return true
 	}
 	catalog_walk(system.catalog, array, Infinity, filter, function(node, array) {
 		let level = array.length - 1
 		if (level % 2 === 0) return
 		let items = Array.from(node.map.values()).map(function(each) {
-			return order_item_find(item, each.path).node
+			let result = {}
+			Object.assign(result, each)
+			Object.assign(result, order_item_find(item, each.path).node)
+			return result
 		})
 		fn({ menu: node, items: items })
 	})
@@ -320,7 +324,7 @@ export function walk(treepath, depth, filter, fn) {
 	let node = treepath[treepath.length - 1]
 	if (! node.name) return
 	fn(node, treepath)
-	if (! filter(node, treepath)) return
+	if (! filter(node, treepath, treepath.length - 1)) return
 	for (const key of node.map.keys()) {
 		let treepath_ = [...treepath, node.map.get(key)]
 		walk(treepath_, depth, filter, fn)
