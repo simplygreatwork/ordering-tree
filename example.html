@@ -50,6 +50,8 @@
 				
 				console.log('\nORDER VALIDATE')
 				console.log(`RESULT: ${order_validate(order)}`)
+				order_item_increment(order.items[0], '/drink/fountain/flavor/coke')
+				order_item_increment(order.items[3], '/salad/garden/dressing_side/no')
 				order_item_increment(item, '/sandwich/burger/drink/fountain/flavor/coke')
 				order_item_increment(item, '/sandwich/burger/drink/fountain/flavor/pepsi')
 				order_item_increment(item, '/sandwich/burger/drink/fountain/flavor/coke')
@@ -198,7 +200,7 @@
 /salad/garden/dressing/caesar 0 Caesar 0
 /salad/garden/dressing_side 0 Dressing_Side 0 !
 /salad/garden/dressing_side/yes 0 Dressing_Side_Yes 0
-/salad/garden/dressing_side/no 0 Dressing_Side_No 0
+/salad/garden/dressing_side/no 0 Dressing_Side_No 1
 /salad/garden/topping 0 Topping 0
 /salad/garden/topping/tomato 0 Tomato 1
 /salad/garden/topping/onion 0 Onion 1
@@ -243,7 +245,7 @@
 /salad/garden 1
 /salad/garden/dressing/ranch 1
 /salad/garden/dressing/ranch/amount/extra 1
-/salad/garden/dressing_side/yes 1
+/salad/garden/dressing_side/no 1
 /salad/garden/topping/tomato 1
 /salad/garden/topping/onion 1
 /salad/garden/topping/carrots 1
