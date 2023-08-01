@@ -1,0 +1,13 @@
+
+order_item_increment in order_import
+	might need
+		order_item_quantity(2)
+		order_item_quantity(+1)
+		order_item_quantity(-1)
+	or
+		order_item_set_quantity
+	or
+		just call order_item_increment multiple times
+			possibly - but consider that item might default to 1
+			so would need order_item_set_quantity or subtract 1
+

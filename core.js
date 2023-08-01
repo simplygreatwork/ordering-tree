@@ -98,14 +98,12 @@ export function order_import(order, source) {
 		let path = columns[0]
 		let level = path.split('/').length - 1
 		let quantity = parseInt(columns[1])
+		let item
 		if (level < 2) return 
 		else if (level === 2) {
-			order.items.push(order_item_create(path))
-		} else {
-			if (order.items.length > 0) {
-				let item = order.items[order.items.length - 1]
-				order_item_increment(item, path)
-			}
+			order.items.push(item = order_item_create(path))
+		} else if (item) {
+			order_item_set_quantity(item, path, quantity)
 		}
 	})
 }
@@ -126,7 +124,7 @@ export function order_print(order) {
 			let node_ = catalog_find(system.catalog, node.path).node
 			total = total + node_.price
 			let price = node_.price === 0 ? '' : ' $' + node_.price.toFixed(2)
-			console.log(`${padding}${node_.label} ${node.quantity} ${price}`)
+			console.log(`${padding}${node_.label}${price} (${node.quantity})`)
 		})
 	})
 	console.log(`Total: $${total}`)
@@ -158,6 +156,24 @@ export function order_item_create(path) {
 	item.node.quantity = 1
 	order_item_deflate(item)
 	return item
+}
+
+export function order_item_set_quantity(item, path, quantity) {
+	
+	order_item_inflate(item)
+	let allowed = true
+	let { node, parent } = order_item_find(item, path)
+	let cat = catalog_find(system.catalog, path)
+	if (quantity > 1 && ! cat.node.multiples) allowed = false
+	else if (quantity < 0) allowed = false
+	if (allowed) {
+		node.quantity = quantity
+		order_item_deflate(item)
+		system_emit(`order-item-set`, { item: item, path: path })
+	} else {
+		order_item_deflate(item)
+		system_emit(`order-item-set-not`, { item: item, path: path, reason: 'multiples-forbidden' })
+	}
 }
 
 export function order_item_increment(item, path) {

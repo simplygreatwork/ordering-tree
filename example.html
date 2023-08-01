@@ -24,7 +24,8 @@
 				let catalog = system.catalog = catalog_initialize(catalog_source())
 				console.log('\nFULL CATALOG')
 				catalog_walk(catalog, [catalog.tree], 2, null, function(node) {
-					if (node.level === 2) console.log(`${node.path}`)
+					if (node.level === 1) console.log(` ${node.label}`)
+					if (node.level === 2) console.log(`  ${node.label}${node.price == 0 ? '' : ' $' + node.price.toFixed(2)}`)
 				})
 				
 				let order = system.order = order_initialize(order_source())
