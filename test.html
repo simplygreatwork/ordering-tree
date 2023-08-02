@@ -10,11 +10,8 @@
 			
 			import { system_initialize } from './core.js'
 			import { catalog_initialize } from './core.js'
-			import { catalog_find, catalog_walk } from './core.js'
 			import { order_initialize, order_append } from './core.js'
-			import { order_print } from './core.js'
 			import { order_item_increment, order_item_decrement, order_item_set } from './core.js'
-			import { order_item_menus } from './core.js'
 			import { order_validate } from './core.js'
 			import { order_serialize } from './core.js'
 			
@@ -125,7 +122,7 @@
 					},
 					
 					function() {
-						
+							
 						let system = window.system = system_initialize()
 						let catalog = system.catalog = catalog_initialize(`
 							/drink/fountain +2.09 Fountain_Drink 0 #
@@ -166,8 +163,22 @@
 						let catalog = system.catalog = catalog_initialize(`
 							/drink/fountain +2.09 Fountain_Drink 0 #
 							/drink/fountain/flavor 0 Flavor 0 !
-							/drink/fountain/flavor/coke 0 Flavor 1
+							/drink/fountain/flavor/coke 0 Flavor 0
 							/drink/fountain/flavor/pepsi 0 Flavor 0
+						`)
+						let order = system.order = order_initialize()
+						order_append(order, '/drink/fountain')
+						return order_validate(order) === false
+					},
+					
+					function() {
+						
+						let system = window.system = system_initialize()
+						let catalog = system.catalog = catalog_initialize(`
+							/drink/fountain +2.09 Fountain_Drink 0 #
+							/drink/fountain/flavor 0 Flavor 0 !
+							/drink/fountain/flavor/coke 0 Flavor 0
+							/drink/fountain/flavor/pepsi 0 Flavor 1
 						`)
 						let order = system.order = order_initialize()
 						order_append(order, '/drink/fountain')
@@ -251,7 +262,7 @@
 			}
 			
 			let result = run()
-			console.log(`tests passed: ${result}`)
+			console.log(`all tests passed: ${result}`)
 			
 		</script>
 	</body>

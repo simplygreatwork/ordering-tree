@@ -271,7 +271,7 @@ export function order_item_validate(item, order) {
 			})
 			if (items.length === 0) {
 				result = false
-				console.log(`invalid-menu-choice: ${menu.path}`)
+				if (false) console.log(`invalid-menu-choice: ${menu.path}`)
 				system_emit(`invalid-menu-choice`, { order: order, item: item, path: menu.path})
 			}
 		}
