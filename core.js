@@ -15,6 +15,7 @@ export function catalog_initialize(source) {
 	let tree = catalog.tree
 	catalog.lines = source.split('\n')
 	catalog.lines.forEach(function(line, index) {
+		line = line.trim()
 		if (line.length === 0) return
 		let entry = catalog_parse_line(catalog, line, index)
 		catalog_validate_entry(catalog, entry)
@@ -94,18 +95,31 @@ export function order_import(order, source) {
 	order.lines = source.split('\n')
 	order.lines.forEach(function(line, index) {
 		if (line.length === 0) return
-		let columns = line.split(' ')
-		let path = columns[0]
-		let level = path.split('/').length - 1
-		let quantity = parseInt(columns[1])
-		let item
-		if (level < 2) return 
-		else if (level === 2) {
-			order.items.push(item = order_item_create(path))
-		} else if (item) {
-			order_item_set(item, path, quantity)
-		}
+		order_parse_line(order, line)
 	})
+}
+
+export function order_parse_line(order, line) {
+	
+	let columns = line.split(' ')
+	let path = columns[0]
+	let level = path.split('/').length - 1
+	let quantity = parseInt(columns[1])
+	let item
+	if (level < 2) return 
+	else if (level === 2) {
+		order.items.push(item = order_item_create(path))
+	} else if (item) {
+		order_item_set(item, path, quantity)
+	}
+}
+
+export function order_validate_node(order, node) {
+	return
+}
+
+export function order_err(message, order, node) {
+	return
 }
 
 export function order_append(order, path) {
@@ -145,7 +159,7 @@ export function order_serialize(order) {
 	order.items.forEach(function(item) {
 		order_item_serialize(item, array)
 	})
-	return array.join('\n')
+	return array.join('\n') + '\n'
 }
 
 export function order_item_create(path) {

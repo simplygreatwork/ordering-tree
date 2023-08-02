@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="user-scalable=1.0,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
+		<title>Ordering Example: Main</title>
+	</head>
+	<body>
+		
+		<script type="module">
+			
+			import { system_initialize } from './core.js'
+			import { catalog_initialize } from './core.js'
+			import { catalog_find, catalog_walk } from './core.js'
+			import { order_initialize, order_append } from './core.js'
+			import { order_print } from './core.js'
+			import { order_item_increment, order_item_decrement, order_item_set } from './core.js'
+			import { order_item_menus } from './core.js'
+			import { order_validate } from './core.js'
+			import { order_serialize } from './core.js'
+			
+			function run() {
+				
+				let result = true
+				let tests =	[
+					
+					function() {
+						
+						let system = window.system = system_initialize()
+						let catalog = system.catalog = catalog_initialize(`
+							/drink/fountain +2.09 Fountain_Drink 0 #
+						`)
+						let order = system.order = order_initialize()
+						order_append(order, '/drink/fountain')
+						return matches(order_serialize(order), `
+							/drink/fountain 1
+						`)
+					},
+					
+					function() {
+						
+						let system = window.system = system_initialize()
+						let catalog = system.catalog = catalog_initialize(`
+							/drink/fountain +2.09 Fountain_Drink 0 #
+						`)
+						let order = system.order = order_initialize()
+						order_append(order, '/drink/fountain')
+						order_item_increment(order.items[0], '/drink/fountain')
+						return matches(order_serialize(order), `
+							/drink/fountain 2
+						`)
+					},
+					
+					function() {
+						
+						let system = window.system = system_initialize()
+						let catalog = system.catalog = catalog_initialize(`
+							/drink/fountain +2.09 Fountain_Drink 0 #
+						`)
+						let order = system.order = order_initialize()
+						order_append(order, '/drink/fountain')
+						order_item_increment(order.items[0], '/drink/fountain')
+						order_item_increment(order.items[0], '/drink/fountain')
+						return matches(order_serialize(order), `
+							/drink/fountain 3
+						`)
+					},
+					
+					function() {
+						
+						let system = window.system = system_initialize()
+						let catalog = system.catalog = catalog_initialize(`
+							/drink/fountain +2.09 Fountain_Drink 0 #
+						`)
+						let order = system.order = order_initialize()
+						order_append(order, '/drink/fountain')
+						order_item_set(order.items[0], '/drink/fountain', 5)
+						return matches(order_serialize(order), `
+							/drink/fountain 5
+						`)
+					},
+					
+					function() {
+						
+						let system = window.system = system_initialize()
+						let catalog = system.catalog = catalog_initialize(`
+							/drink/fountain +2.09 Fountain_Drink 0 #
+						`)
+						let order = system.order = order_initialize()
+						order_append(order, '/drink/fountain')
+						order_item_decrement(order.items[0], '/drink/fountain')
+						order_item_decrement(order.items[0], '/drink/fountain')
+						order_item_increment(order.items[0], '/drink/fountain')
+						return matches(order_serialize(order), `
+							/drink/fountain 1
+						`)
+					},
+					
+					function() {
+						
+						let system = window.system = system_initialize()
+						let catalog = system.catalog = catalog_initialize(`
+							/drink/fountain +2.09 Fountain_Drink 0 #
+						`)
+						let order = system.order = order_initialize()
+						order_append(order, '/drink/fountain')
+						order_item_decrement(order.items[0], '/drink/fountain')
+						order_item_decrement(order.items[0], '/drink/fountain')
+						return matches(order_serialize(order), ``)
+					},
+					
+					function() {
+						
+						let system = window.system = system_initialize()
+						let catalog = system.catalog = catalog_initialize(`
+							/drink/fountain +2.09 Fountain_Drink 0 #
+							/drink/fountain/flavor 0 Flavor 0
+							/drink/fountain/flavor/coke 0 Flavor 0
+							/drink/fountain/flavor/pepsi 0 Flavor 0
+						`)
+						let order = system.order = order_initialize()
+						order_append(order, '/drink/fountain')
+						return matches(order_serialize(order), `
+							/drink/fountain 1
+						`)
+					},
+					
+					function() {
+						
+						let system = window.system = system_initialize()
+						let catalog = system.catalog = catalog_initialize(`
+							/drink/fountain +2.09 Fountain_Drink 0 #
+							/drink/fountain/flavor 0 Flavor 0
+							/drink/fountain/flavor/coke 0 Flavor 1
+							/drink/fountain/flavor/pepsi 0 Flavor 0
+						`)
+						let order = system.order = order_initialize()
+						order_append(order, '/drink/fountain')
+						return matches(order_serialize(order), `
+							/drink/fountain 1
+							/drink/fountain/flavor/coke 1
+						`)
+					},
+					
+					function() {
+						
+						let system = window.system = system_initialize()
+						let catalog = system.catalog = catalog_initialize(`
+							/drink/fountain +2.09 Fountain_Drink 0 #
+							/drink/fountain/flavor 0 Flavor 0
+							/drink/fountain/flavor/coke 0 Flavor 1
+							/drink/fountain/flavor/pepsi 0 Flavor 0
+						`)
+						let order = system.order = order_initialize()
+						order_append(order, '/drink/fountain')
+						order_item_decrement(order.items[0], '/drink/fountain/flavor/coke')
+						order_item_increment(order.items[0], '/drink/fountain/flavor/pepsi')
+						return matches(order_serialize(order), `
+							/drink/fountain 1
+							/drink/fountain/flavor/pepsi 1
+						`)
+					},
+					
+					function() {
+						
+						let system = window.system = system_initialize()
+						let catalog = system.catalog = catalog_initialize(`
+							/drink/fountain +2.09 Fountain_Drink 0 #
+							/drink/fountain/flavor 0 Flavor 0 !
+							/drink/fountain/flavor/coke 0 Flavor 1
+							/drink/fountain/flavor/pepsi 0 Flavor 0
+						`)
+						let order = system.order = order_initialize()
+						order_append(order, '/drink/fountain')
+						order_item_increment(order.items[0], '/drink/fountain/flavor/pepsi')
+						return matches(order_serialize(order), `
+							/drink/fountain 1
+							/drink/fountain/flavor/pepsi 1
+						`)
+					},
+					
+					function() {
+						
+						let system = window.system = system_initialize()
+						let catalog = system.catalog = catalog_initialize(`
+							/sandwich/burger +4.49 Burger 0 #
+							/sandwich/burger/topping 0 Topping 0
+							/sandwich/burger/topping/cheese +1.00 Cheese 0
+						`)
+						let order = system.order = order_initialize()
+						order_append(order, '/sandwich/burger')
+						order_item_increment(order.items[0], '/sandwich/burger/topping/cheese')
+						return matches(order_serialize(order), `
+							/sandwich/burger 1
+							/sandwich/burger/topping/cheese 1
+						`)
+					},
+					
+					function() {
+						
+						let system = window.system = system_initialize()
+						let catalog = system.catalog = catalog_initialize(`
+							/sandwich/burger +4.49 Burger 0 #
+							/sandwich/burger/topping 0 Topping 0
+							/sandwich/burger/topping/cheese +1.00 Cheese 0
+						`)
+						let order = system.order = order_initialize()
+						order_append(order, '/sandwich/burger')
+						order_item_increment(order.items[0], '/sandwich/burger/topping/cheese')
+						order_item_increment(order.items[0], '/sandwich/burger/topping/cheese')
+						return matches(order_serialize(order), `
+							/sandwich/burger 1
+							/sandwich/burger/topping/cheese 1
+						`)
+					},
+					
+					function() {
+						
+						let system = window.system = system_initialize()
+						let catalog = system.catalog = catalog_initialize(`
+							/sandwich/burger +4.49 Burger 0 #
+							/sandwich/burger/topping 0 Topping 0
+							/sandwich/burger/topping/cheese +1.00 Cheese 0 #
+						`)
+						let order = system.order = order_initialize()
+						order_append(order, '/sandwich/burger')
+						order_item_increment(order.items[0], '/sandwich/burger/topping/cheese')
+						order_item_increment(order.items[0], '/sandwich/burger/topping/cheese')
+						return matches(order_serialize(order), `
+							/sandwich/burger 1
+							/sandwich/burger/topping/cheese 2
+						`)
+					},
+					
+					function() {
+						return true
+					}
+				]
+				
+				tests.forEach(function(each, index) {
+					let result_ = each()
+					console.log(`test ${index} passed: ${result_}`)
+					if (result_ === false) result = false 
+				})
+				return result
+			}
+			
+			function matches(a, b) {
+				
+				let process = (x => x.trim().split('\n').map(x => x.trim()).filter(x => x.length > 0).join('\n'))
+				return process(a) == process(b)
+			}
+			
+			let result = run()
+			console.log(`tests passed: ${result}`)
+			
+		</script>
+	</body>
+</html>
