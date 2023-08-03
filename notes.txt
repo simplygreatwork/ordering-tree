@@ -28,3 +28,6 @@ can still refer to paths either like
 continue to work on interacting with order menu views
 	idea: notice if incomplete selections
 	idea: for each menu, choose next in line
+
+I substracted 0.10 from a catalog item and ended with x.1000009
+	how to prevent this?

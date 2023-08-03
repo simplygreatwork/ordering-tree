@@ -48,7 +48,7 @@ export function catalog_parse_line(catalog, line, index) {
 		path : columns[0],
 		name: parts[parts.length - 1],
 		level : parts.length - 1,
-		price : parseFloat(columns[1]),
+		price : price_as_cents(parseFloat(columns[1])),
 		price_relative : false,
 		label : columns[2].replaceAll('_', ' '),
 		quantity: parseInt(columns[3]),
@@ -142,11 +142,11 @@ export function order_print(order) {
 			let padding = ''.padStart(node.level / 2, ' ')
 			let node_ = catalog_find(system.catalog, node.path).node
 			total = total + node_.price
-			let price = node_.price === 0 ? '' : ' $' + node_.price.toFixed(2)
+			let price = node_.price === 0 ? '' : ' $' + price_as_dollars(node_.price)
 			console.log(`${padding}${node_.label}${price} (${node.quantity})`)
 		})
 	})
-	console.log(`Total: $${total}`)
+	console.log(`Total: $${price_as_dollars(total)}`)
 }
 
 export function order_validate(order) {
@@ -365,4 +365,12 @@ export function walk(treepath, depth, filter, fn) {
 		let treepath_ = [...treepath, node.map.get(key)]
 		walk(treepath_, depth, filter, fn)
 	}
+}
+
+export function price_as_cents(price) {
+	return Math.floor(price * 100)
+}
+
+export function price_as_dollars(price) {
+	return (price / 100).toFixed(2)
 }

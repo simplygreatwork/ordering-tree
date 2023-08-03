@@ -25,7 +25,7 @@
 				console.log('\nFULL CATALOG')
 				catalog_walk(catalog, [catalog.tree], 2, null, function(node) {
 					if (node.level === 1) console.log(` ${node.label}`)
-					if (node.level === 2) console.log(`  ${node.label}${node.price == 0 ? '' : ' $' + node.price.toFixed(2)}`)
+					if (node.level === 2) console.log(`  ${node.label}${node.price == 0 ? '' : ' $' + (node.price / 100).toFixed(2)}`)
 				})
 				
 				let order = order_new(order_source())
