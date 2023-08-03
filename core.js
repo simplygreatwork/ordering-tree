@@ -56,7 +56,7 @@ export function catalog_parse_line(catalog, line, index) {
 		single_select: false,
 		multiples: false
 	}
-	if (columns[1].startsWith('+') || columns[1].startsWith('1')) entry.price_relative = true
+	if (columns[1].startsWith('+') || columns[1].startsWith('-')) entry.price_relative = true
 	columns.slice(4).forEach(function(code) {
 		if (code == '!') entry.single_select = true
 		if (code == '#') entry.multiples = true
