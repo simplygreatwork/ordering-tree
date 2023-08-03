@@ -11,6 +11,20 @@ order_item_increment in order_import
 			possibly - but consider that item might default to 1
 			so would need order_item_set_quantity or subtract 1
 
-
 need to validate order order_import
 	like catalog import
+
+catalog aliasing
+	/sandwich/burger/combo = /combo-drink-fry
+	/sandwich/burger/drink = /combo-drink
+	/sandwich/burger/fry = /combo-fry
+but would also need to prevent display as a top level menu
+	make it a private menu
+can still refer to paths either like
+	/combo-drink/fountain/flavor/coke
+		or
+	/sandwich/burger/drink/fountain/flavor/coke
+
+continue to work on interacting with order menu views
+	idea: notice if incomplete selections
+	idea: for each menu, choose next in line

@@ -1,5 +1,5 @@
 
-export function system_initialize(responder) {
+export function system_new(responder) {
 	
 	responder = responder || function() {}
 	return { responder: responder }
@@ -9,9 +9,15 @@ export function system_emit(message, data) {
 	if (system.responder) system.responder(message, data)
 }
 
-export function catalog_initialize(source) {
+export function catalog_new(source) {
 	
 	let catalog = { source: source, tree: { name: '/', map: new Map() }, errors: [] }
+	catalog_import(catalog, source)
+	return catalog
+}
+
+export function catalog_import(catalog, source) {
+	
 	let tree = catalog.tree
 	catalog.lines = source.split('\n')
 	catalog.lines.forEach(function(line, index) {
@@ -26,12 +32,11 @@ export function catalog_initialize(source) {
 			if (! value) node.map.set(part, { map: new Map() })
 			node = node.map.get(part)
 		})
-		node.price = 0
+		node.price = node.price || 0
 		if (entry.price_relative) entry.price = node.price + entry.price
 		Object.assign(node, entry)
 	})
 	if (catalog.errors.length > 0) throw Error('Unstable catalog')
-	return catalog
 }
 
 export function catalog_parse_line(catalog, line, index) {
@@ -82,7 +87,7 @@ export function catalog_walk(catalog, treepath, depth, filter, fn) {
 	walk(treepath, depth, filter, fn)
 }
 
-export function order_initialize(source) {
+export function order_new(source) {
 	
 	let order = { items: [] }
 	order_import(order, source)

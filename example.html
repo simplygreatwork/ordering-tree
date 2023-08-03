@@ -8,10 +8,10 @@
 		
 		<script type="module">
 			
-			import { system_initialize } from './core.js'
-			import { catalog_initialize } from './core.js'
+			import { system_new } from './core.js'
+			import { catalog_new } from './core.js'
 			import { catalog_find, catalog_walk } from './core.js'
-			import { order_initialize, order_append } from './core.js'
+			import { order_new, order_append } from './core.js'
 			import { order_print } from './core.js'
 			import { order_item_increment, order_item_decrement } from './core.js'
 			import { order_item_menus } from './core.js'
@@ -20,15 +20,15 @@
 			
 			function run() {
 				
-				let system = window.system = system_initialize()
-				let catalog = system.catalog = catalog_initialize(catalog_source())
+				let system = window.system = system_new()
+				let catalog = system.catalog = catalog_new(catalog_source())
 				console.log('\nFULL CATALOG')
 				catalog_walk(catalog, [catalog.tree], 2, null, function(node) {
 					if (node.level === 1) console.log(` ${node.label}`)
 					if (node.level === 2) console.log(`  ${node.label}${node.price == 0 ? '' : ' $' + node.price.toFixed(2)}`)
 				})
 				
-				let order = system.order = order_initialize(order_source())
+				let order = order_new(order_source())
 				order_append(order, '/sandwich/burger')
 				console.log('\nORDER')
 				order_print(order)
