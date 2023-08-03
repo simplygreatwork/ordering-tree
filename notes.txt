@@ -31,3 +31,16 @@ continue to work on interacting with order menu views
 
 I substracted 0.10 from a catalog item and ended with x.1000009
 	how to prevent this?
+
+implement
+	/sandwich/burger label:Hamburger
+
+to calculate total of an item
+	need compound multipliers
+		3 a
+			3 b
+				3 c
+	so there are 3 a, 9 b, 27 c
+	as you descend walk, the multiplier changes
+
+maybe walk filter can change the multiplier

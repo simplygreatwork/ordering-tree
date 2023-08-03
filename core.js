@@ -135,18 +135,33 @@ export function order_append(order, path) {
 
 export function order_print(order) {
 	
-	let total = 0
 	order.items.forEach(function(item) {
-		order_item_walk_active(item, [item.node], Infinity, function(node) {
+		order_item_walk_active(item, [item.node], Infinity, function(node, treepath) {
 			if (node.quantity === 0) return
 			let padding = ''.padStart(node.level / 2, ' ')
-			let node_ = catalog_find(system.catalog, node.path).node
-			total = total + node_.price
-			let price = node_.price === 0 ? '' : ' $' + price_as_dollars(node_.price)
-			console.log(`${padding}${node_.label}${price} (${node.quantity})`)
+			let { label, price } = catalog_find(system.catalog, node.path).node
+			price = price === 0 ? '' : ' $' + price_as_dollars(price)
+			console.log(`${padding}${label}${price} (${node.quantity})`)
 		})
 	})
-	console.log(`Total: $${price_as_dollars(total)}`)
+	console.log(`Total: $${order_total(order)}`)
+}
+
+export function order_total(order) {
+	
+	let total = 0
+	order.items.forEach(function(item) {
+		order_item_walk_active(item, [item.node], Infinity, function(node, treepath) {
+			if (node.quantity === 0) return
+			let multiplier = 1
+			treepath.forEach(function(each) {
+				if (each.quantity > 0) multiplier *= each.quantity
+			})
+			let price = catalog_find(system.catalog, node.path).node.price
+			total = total + (price * multiplier)
+		})
+	})
+	return price_as_dollars(total)
 }
 
 export function order_validate(order) {

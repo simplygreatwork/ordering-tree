@@ -235,10 +235,10 @@
 				
 				it('overrides a catalog with additional imports', function() {
 					
-					system.catalog = catalog_new(`/sandwich/burger +4.49 Burger 0 #`)
-					catalog_import(system.catalog, `/sandwich/burger +2.00 Burger 0 #`)
-					catalog_import(system.catalog, `/sandwich/burger -0.10 Burger 0 #`)
-					catalog_import(system.catalog, `/sandwich/burger +0 Hamburger 0 #`)
+					system.catalog = catalog_new(`/sandwich/burger +4.49 Burger 0`)
+					catalog_import(system.catalog, `/sandwich/burger +2.00 Burger 0`)
+					catalog_import(system.catalog, `/sandwich/burger -0.10 Burger 0`)
+					catalog_import(system.catalog, `/sandwich/burger +0 Hamburger 0`)
 					let { label, price } = catalog_find(system.catalog, '/sandwich/burger').node
 					return label == 'Hamburger' && price_as_dollars(price) == 6.39
 				})
