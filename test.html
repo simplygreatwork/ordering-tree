@@ -14,6 +14,7 @@
 			import { order_item_increment, order_item_decrement, order_item_set } from './core.js'
 			import { order_validate } from './core.js'
 			import { order_serialize } from './core.js'
+			import { order_print, order_total } from './core.js'
 			import { price_as_dollars } from './core.js'
 			
 			function run() {
@@ -244,7 +245,32 @@
 				})
 				
 				it('validates an order total', function() {
-					return true
+					
+					system.catalog = catalog_new(`
+						/sandwich 0 Sandwiches 0
+						/sandwich/burger +4.99 Burger 0 #
+						/sandwich/burger/drink 0 Drinks 0
+						/sandwich/burger/drink/fountain +1.99 Fountain_Drink 0 #
+						/sandwich/burger/drink/fountain/size 0 Size 0
+						/sandwich/burger/drink/fountain/size/large +0.50 Large 0 #
+					`)
+					let order = order_new()
+					order_append(order, '/sandwich/burger')
+					order_item_set(order.items[0], '/sandwich/burger', 3)
+					order_item_set(order.items[0], '/sandwich/burger/drink/fountain', 3)
+					order_item_set(order.items[0], '/sandwich/burger/drink/fountain/size/large', 3)
+					return order_total(order) == 46.38
+				})
+				
+				it('appends an item with changed label', function() {
+					
+					system.catalog = catalog_new(`/drink/fountain +1.09 Foundation_Drink 0 #`)
+					catalog_import(system.catalog, `/drink/fountain label:Fountain_Drink`)
+					catalog_import(system.catalog, `/drink/fountain price:+1.00`)
+					let order = order_new()
+					order_append(order, '/drink/fountain')
+					let { label, price } = catalog_find(system.catalog, '/drink/fountain').node
+					return label == 'Fountain Drink' && price_as_dollars(price) == 2.09
 				})
 				
 				let result = true

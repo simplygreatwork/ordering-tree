@@ -44,3 +44,6 @@ to calculate total of an item
 	as you descend walk, the multiplier changes
 
 maybe walk filter can change the multiplier
+
+example for catalog import...
+let example = `/sandwich p:0 l:Burger q:0 m:no s:no`

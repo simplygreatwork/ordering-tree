@@ -41,6 +41,12 @@ export function catalog_import(catalog, source) {
 
 export function catalog_parse_line(catalog, line, index) {
 	
+	if (line.includes(':')) return catalog_parse_line_props(catalog, line, index)
+	else return catalog_parse_line_basic(catalog, line, index)
+}
+
+export function catalog_parse_line_basic(catalog, line, index) {
+	
 	let columns = line.split(' ')
 	let parts = columns[0].split('/')
 	let entry = {
@@ -48,18 +54,61 @@ export function catalog_parse_line(catalog, line, index) {
 		path : columns[0],
 		name: parts[parts.length - 1],
 		level : parts.length - 1,
-		price : price_as_cents(parseFloat(columns[1])),
-		price_relative : false,
-		label : columns[2].replaceAll('_', ' '),
-		quantity: parseInt(columns[3]),
-		quantity_default: parseInt(columns[3]),
-		single_select: false,
-		multiples: false
+		price : columns[1],
+		label : columns[2],
+		quantity: columns[3],
+		single_select: 'no',
+		multiples: 'no'
 	}
-	if (columns[1].startsWith('+') || columns[1].startsWith('-')) entry.price_relative = true
 	columns.slice(4).forEach(function(code) {
-		if (code == '!') entry.single_select = true
-		if (code == '#') entry.multiples = true
+		if (code == '!') entry.single_select = 'yes'
+		if (code == '#') entry.multiples = 'yes'
+	})
+	return catalog_parse_line_process(catalog, entry)
+}
+
+export function catalog_parse_line_props(catalog, line, index) {
+	
+	let columns = line.split(' ')
+	let parts = columns[0].split('/')
+	let entry = {
+		line: index,
+		path : columns[0],
+		name: parts[parts.length - 1],
+		level : parts.length - 1,
+	}
+	let dict = {}
+	columns.forEach(function(each) {
+		let pair = each.split(':')
+		entry[pair[0]] = pair[1]
+	})
+	return catalog_parse_line_process(catalog, entry)
+}
+
+export function catalog_parse_line_process(catalog, entry) {
+	
+	let price = entry.price
+	if (price) {
+		if (price.startsWith('+') || price.startsWith('-')) {
+			entry.price_relative = true
+		}
+	}
+	let quantity = entry.quantity
+	if (quantity) {
+		entry.quantity_default = quantity
+	}
+	const transforms = {
+		label: function(value) { return value.replaceAll('_', ' ') },
+		price: function(value) { return price_as_cents(parseFloat(value)) },
+		price_relative: function(value) { return value },
+		quantity: function(value) { return parseInt(value) },
+		quantity_default: function(value) { return parseInt(value) },
+		single_select: function(value) { return value == 'yes' ? true : false },
+		multiples: function(value) { return value == 'yes' ? true : false }
+	}
+	Object.keys(entry).forEach(function(key) {
+		if (! transforms[key]) return
+		entry[key] = transforms[key](entry[key])
 	})
 	return entry
 }
@@ -89,7 +138,7 @@ export function catalog_walk(catalog, treepath, depth, filter, fn) {
 
 export function order_new(source) {
 	
-	let order = { items: [] }
+	let order = { items: [], errors: [] }
 	order_import(order, source)
 	return order
 }
@@ -99,32 +148,45 @@ export function order_import(order, source) {
 	source = source || ''
 	order.lines = source.split('\n')
 	order.lines.forEach(function(line, index) {
+		line = line.trim()
 		if (line.length === 0) return
-		order_parse_line(order, line)
+		let entry = order_parse_line(order, line, index)
+		order_validate_entry(order, entry)
+		let item
+		let { level, path, quantity } = entry
+		if (level < 2) return
+		else if (level === 2) {
+			order.items.push(item = order_item_create(path))
+		} else if (item) {
+			order_item_set(item, path, quantity)
+		}
 	})
+	if (order.errors.length > 0) throw Error('Unstable order')
 }
 
-export function order_parse_line(order, line) {
+export function order_parse_line(order, line, index) {
 	
 	let columns = line.split(' ')
-	let path = columns[0]
-	let level = path.split('/').length - 1
-	let quantity = parseInt(columns[1])
-	let item
-	if (level < 2) return 
-	else if (level === 2) {
-		order.items.push(item = order_item_create(path))
-	} else if (item) {
-		order_item_set(item, path, quantity)
+	return {
+		line: index,
+		path: columns[0],
+		quantity: parseInt(columns[1]),
+		level: columns[0].split('/').length - 1
 	}
 }
 
-export function order_validate_node(order, node) {
-	return
+export function order_validate_entry(order, entry) {
+	
+	if (! entry.path.startsWith('/')) order_err('Path must begin with a slash', order, entry)
+	if (entry.path.endsWith('/')) order_err('Path must not end with slash', order, entry)
+	if (Number.isNaN(entry.quantity)) order_err('Quantity must be a numerical value', order, entry)
 }
 
-export function order_err(message, order, node) {
-	return
+export function order_err(message, order, entry) {
+	
+	let errors = order.errors
+	errors.push(`Catalog entry validation error: "${message}" ${entry.path} at line ${entry.line}`)
+	console.error(errors[errors.length - 1])
 }
 
 export function order_append(order, path) {
@@ -154,11 +216,11 @@ export function order_total(order) {
 		order_item_walk_active(item, [item.node], Infinity, function(node, treepath) {
 			if (node.quantity === 0) return
 			let multiplier = 1
-			treepath.forEach(function(each) {
-				if (each.quantity > 0) multiplier *= each.quantity
+			treepath.filter(each => each.quantity > 0).forEach(function(each) {
+				multiplier *= each.quantity
 			})
 			let price = catalog_find(system.catalog, node.path).node.price
-			total = total + (price * multiplier)
+			total += price * multiplier
 		})
 	})
 	return price_as_dollars(total)
