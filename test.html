@@ -262,13 +262,11 @@
 					return order_total(order) == 46.38
 				})
 				
-				it('appends an item with changed label', function() {
+				it('appends an item with updated label and price', function() {
 					
 					system.catalog = catalog_new(`/drink/fountain +1.09 Foundation_Drink 0 #`)
 					catalog_import(system.catalog, `/drink/fountain label:Fountain_Drink`)
 					catalog_import(system.catalog, `/drink/fountain price:+1.00`)
-					let order = order_new()
-					order_append(order, '/drink/fountain')
 					let { label, price } = catalog_find(system.catalog, '/drink/fountain').node
 					return label == 'Fountain Drink' && price_as_dollars(price) == 2.09
 				})
