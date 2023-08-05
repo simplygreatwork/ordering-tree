@@ -1,4 +1,8 @@
 
+next: order item display interactions
+next: aliasing private menus
+next: validate multi-select in orderss
+
 order_item_increment in order_import
 	might need
 		order_item_quantity(2)

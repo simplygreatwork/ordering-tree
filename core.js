@@ -100,7 +100,6 @@ export function catalog_parse_line_process(catalog, entry) {
 	const transforms = {
 		label: function(value) { return value.replaceAll('_', ' ') },
 		price: function(value) { return price_as_cents(parseFloat(value)) },
-		price_relative: function(value) { return value },
 		quantity: function(value) { return parseInt(value) },
 		quantity_default: function(value) { return parseInt(value) },
 		single_select: function(value) { return value == 'yes' ? true : false },
@@ -215,12 +214,13 @@ export function order_total(order) {
 	order.items.forEach(function(item) {
 		order_item_walk_active(item, [item.node], Infinity, function(node, treepath) {
 			if (node.quantity === 0) return
+			let node_ = catalog_find(system.catalog, node.path).node
 			let multiplier = 1
 			treepath.filter(each => each.quantity > 0).forEach(function(each) {
-				multiplier *= each.quantity
+				let quantity = each.quantity - node_.quantity_default
+				if (quantity > 0) multiplier *= quantity
 			})
-			let price = catalog_find(system.catalog, node.path).node.price
-			total += price * multiplier
+			total += node_.price * multiplier
 		})
 	})
 	return price_as_dollars(total)
