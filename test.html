@@ -271,6 +271,29 @@
 					return label == 'Fountain Drink' && price_as_dollars(price) == 2.09
 				})
 				
+				it('validates an alias', function() {
+					
+					system.catalog = catalog_new(`
+						/combo 0 Combos 0
+						/combo/combo +3.40 Combo 0
+						/combo/combo/drink 0 Drinks 0
+						/combo/combo/drink/fountain 0 Fountain_Drink 0
+						/combo/combo/side 0 Drinks 0
+						/combo/combo/side/fry 0 Fry 0
+						/sandwich 0 Sandwiches 0
+						/sandwich/burger +4.99 Burger 0
+						/sandwich/burger/combo = /combo
+					`)
+					let order = order_new()
+					order_append(order, '/sandwich/burger')
+					order_item_increment(order.items[0], '/sandwich/burger/combo/combo')
+					if (false) console.log(`order serialize: ${order_serialize(order)}`)
+					return matches(order_serialize(order), `
+						/sandwich/burger 1
+						/sandwich/burger/combo/combo 1
+					`)
+				})
+				
 				let result = true
 				tests.forEach(function(each, index) {
 					let result_ = each.fn()

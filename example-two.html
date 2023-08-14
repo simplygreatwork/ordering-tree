@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="user-scalable=1.0,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
+		<title>Ordering Example: Main</title>
+	</head>
+	<body>
+		
+		<script type="module">
+			
+			import { system_new } from './core.js'
+			import { catalog_new, catalog_find, catalog_walk } from './core.js'
+			import { order_new, order_append } from './core.js'
+			import { order_print } from './core.js'
+			import { order_item_increment, order_item_decrement } from './core.js'
+			import { order_item_menus } from './core.js'
+			import { order_validate } from './core.js'
+			import { order_serialize } from './core.js'
+			
+			function run() {
+				
+				let system = window.system = system_new()
+				let catalog = system.catalog = catalog_new(catalog_source())
+				console.log('\nFULL CATALOG')
+				catalog_walk(catalog, [catalog.tree], 2, null, function(node) {
+					if (node.level === 1) console.log(` ${node.label}`)
+					if (node.level === 2) console.log(`  ${node.label}${node.price == 0 ? '' : ' $' + (node.price / 100).toFixed(2)}`)
+				})
+				
+				let order = order_new(order_source())
+				order_append(order, '/sandwich/burger')
+				console.log('\nORDER')
+				order_print(order)
+				
+				let item = order.items[order.items.length - 1]
+				order_item_increment(item, '/sandwich/burger')
+				order_item_increment(item, '/sandwich/burger/drink/fountain')
+				
+				console.log('\nORDER')
+				order_print(order)
+				
+				console.log('\nORDER ITEM MENUS VIEW')
+				order_item_menus(item, function(record) {
+					let items = record.items.map(function(each) {
+						return `${each.quantity} ${each.label}`
+					})
+					console.log(` ${record.menu.label}: ${items.join(', ')}`)
+				})
+				
+				console.log('\nORDER VALIDATE')
+				console.log(`RESULT: ${order_validate(order)}`)
+				order_item_increment(order.items[0], '/drink/fountain/flavor/coke')
+				order_item_increment(order.items[3], '/salad/garden/dressing_side/no')
+				order_item_increment(item, '/sandwich/burger/drink/fountain/flavor/coke')
+				order_item_increment(item, '/sandwich/burger/drink/fountain/flavor/pepsi')
+				order_item_increment(item, '/sandwich/burger/drink/fountain/flavor/coke')
+				order_item_decrement(item, '/sandwich/burger/drink/fountain/flavor/coke')
+				console.log('\nORDER VALIDATE')
+				console.log(`RESULT: ${order_validate(order)}`)
+				
+				console.log('\nORDER ITEM MENUS VIEW')
+				order_item_menus(item, function(record) {
+					let items = record.items.map(function(each) {
+						return `${each.quantity} ${each.label}`
+					})
+					console.log(` ${record.menu.label}: ${items.join(', ')}`)
+				})
+				
+				console.log('\nORDER SERIALIZE')
+				console.log(`${order_serialize(order)}`)
+			}
+			
+			function catalog_source() {
+				
+				return `
+
+/drink 0 Drinks 0
+/drink/fountain +2.09 Fountain_Drink 0 #
+/drink/fountain/size 0 Size 0 !
+/drink/fountain/size/small 0 Small 1
+/drink/fountain/size/medium +0.20 Medium 0
+/drink/fountain/size/large +0.20 Large 0
+/drink/fountain/flavor 0 Flavor 0 !
+/drink/fountain/flavor/coke 0 Coke 0
+/drink/fountain/flavor/pepsi 0 Pepsi 0
+/drink/fountain/ice 0 Ice 0 !
+/drink/fountain/ice/easy 0 Easy_Ice 0
+/drink/fountain/ice/regular 0 Regular_Ice 1
+/drink/fountain/ice/extra 0 Extra_Ice 0
+/drink/fountain/ice/none 0 No_Ice 0
+/drink/can +1.99 Canned_Drink 0 #
+/drink/can/flavor 0 Flavor 0 !
+/drink/can/flavor/coke 0 Coke 0
+/drink/can/flavor/pepsi 0 Pepsi 0
+
+/side 0 Sides 0
+/side/fry +2.09 Fry 0 #
+/side/fry/size 0 Size 0 !
+/side/fry/size/small 0 Small 1
+/side/fry/size/medium +0.40 Medium 0
+/side/fry/size/large +0.40 Large 0
+/side/fry/topping 0 Topping 0
+/side/fry/topping/butter 0 Butter 0
+/side/fry/topping/cheese 0 Cheese 0
+/side/fry/topping/sour_cream 0 Sour_Cream 0
+/side/fry/topping/bacon 0 Bacon 0
+/side/fry/topping/chives 0 Chives 0
+/side/fry/topping/chili +0.75 Chili 0
+/side/fry/topping/loaded 0 Loaded 0
+/side/fry/salt 0 Salt 0 !
+/side/fry/salt/salted 0 Salted 1
+/side/fry/salt/unsalted 0 Unsalted 0
+/side/fry/season 0 Season 0 !
+/side/fry/season/seasoned 0 Seasoned 1
+/side/fry/season/unseasoned 0 Unseasoned 0
+
+/side/potato +2.49 Baked_Potato 0 #
+/side/potato/topping/butter 0 Butter 0
+/side/potato/topping/cheese 0 Cheese 0
+/side/potato/topping/sour_cream 0 Sour_Cream 1
+/side/potato/topping/chives 0 Chives 1
+/side/potato/topping/bacon 0 Bacon 0
+/side/potato/topping/chili +0.75 Chili 0
+/side/potato/topping/loaded 0 Loaded 0
+
+/sandwich 0 Sandwiches 0
+/sandwich/burger +4.25 Burger 0 #
+/sandwich/burger/patty 0 Patty 0 !
+/sandwich/burger/patty/beef 0 Beef 1
+/sandwich/burger/patty/turkey +0.25 Turkey 0
+/sandwich/burger/patty/veggie 0 Veggie 0
+/sandwich/burger/topping 0 Toppings 0
+/sandwich/burger/topping/cheddar +0.50 Cheddar 1 #
+/sandwich/burger/topping/mayo 0 Mayo 0
+/sandwich/burger/topping/mayo/amount/easy 0 Easy 0
+/sandwich/burger/topping/lettuce 0 Lettuce 1
+/sandwich/burger/topping/tomato 0 Tomato 1
+/sandwich/burger/drink 0 Drinks 0 !
+/sandwich/burger/drink/none 0 No_Drink 1
+/sandwich/burger/drink/fountain +1.09 Fountain_Drink 0
+/sandwich/burger/drink/fountain/size 0 Size 0 !
+/sandwich/burger/drink/fountain/size/small 0 Small 1
+/sandwich/burger/drink/fountain/size/medium +0.10 Medium 0
+/sandwich/burger/drink/fountain/size/large +0.10 Large 0
+/sandwich/burger/drink/fountain/flavor 0 Flavor 0 !
+/sandwich/burger/drink/fountain/flavor/coke 0 Coke 0
+/sandwich/burger/drink/fountain/flavor/pepsi 0 Pepsi 0
+/sandwich/burger/drink/fountain/ice 0 Ice 0 !
+/sandwich/burger/drink/fountain/ice/easy 0 Easy_Ice 0
+/sandwich/burger/drink/fountain/ice/regular 0 Regular_Ice 1
+/sandwich/burger/drink/fountain/ice/extra 0 Extra_Ice 0
+/sandwich/burger/drink/can +0.99 Canned_Drink 0
+/sandwich/burger/drink/can/flavor 0 Flavor 0 !
+/sandwich/burger/drink/can/flavor/coke 0 Coke 0
+/sandwich/burger/drink/can/flavor/pepsi 0 Pepsi 0
+/sandwich/burger/side 0 Side 0 !
+/sandwich/burger/side/none 0 No_Side 0
+/sandwich/burger/side/fry +1.49 Fry 1
+/sandwich/burger/side/fry/size 0 Size 0 !
+/sandwich/burger/side/fry/size/small 0 Small 1
+/sandwich/burger/side/fry/size/medium +0.20 Medium 0
+/sandwich/burger/side/fry/size/large +0.20 Large 0
+/sandwich/burger/side/fry/topping 0 Topping 0
+/sandwich/burger/side/fry/topping/butter 0 Butter 0
+/sandwich/burger/side/fry/topping/cheese 0 Cheese 0
+/sandwich/burger/side/fry/topping/sour_cream 0 Sour_Cream 1
+/sandwich/burger/side/fry/topping/chives 0 Chives 1
+/sandwich/burger/side/fry/topping/bacon 0 Bacon 0
+/sandwich/burger/side/fry/topping/chili +0.75 Chili 0
+/sandwich/burger/side/fry/topping/loaded 0 Loaded 0
+/sandwich/burger/side/fry/salt 0 Salt 0 !
+/sandwich/burger/side/fry/salt/salted 0 Salted 1
+/sandwich/burger/side/fry/salt/unsalted 0 Unsalted 0
+/sandwich/burger/side/fry/season 0 Season 0 !
+/sandwich/burger/side/fry/season/seasoned 0 Seasoned 1
+/sandwich/burger/side/fry/season/unseasoned 0 Unseasoned 0
+/sandwich/burger/side/potato +1.49 Potato 0
+/sandwich/burger/side/potato/topping 0 Topping 0
+/sandwich/burger/side/potato/topping/butter 0 Butter 0
+/sandwich/burger/side/potato/topping/cheese 0 Cheese 0
+/sandwich/burger/side/potato/topping/sour_cream 0 Sour_Cream 1
+/sandwich/burger/side/potato/topping/chives 0 Chives 1
+/sandwich/burger/side/potato/topping/bacon 0 Bacon 0
+/sandwich/burger/side/potato/topping/chili +0.75 Chili 0
+/sandwich/burger/side/potato/topping/loaded 0 Loaded 1
+/sandwich/burger/combo 0 Combo 0 !
+/sandwich/burger/combo/none 0 No_Combo 1
+/sandwich/burger/combo/small +2.00 Small_Combo 0
+/sandwich/burger/combo/medium +2.50 Medium_Combo 0
+/sandwich/burger/combo/large +3.00 Large_Combo 0
+/sandwich/chicken +5.25 Chicken_Sandwich 0
+
+/salad 0 Salads 0
+/salad/garden +6.25 Garden_Salad 0 #
+/salad/garden/dressing 0 Dressing 0
+/salad/garden/dressing/ranch 0 Ranch 0
+/salad/garden/dressing/ranch/amount/easy 0 Easy 0
+/salad/garden/dressing/ranch/amount/extra 0 Extra 0
+/salad/garden/dressing/caesar 0 Caesar 0
+/salad/garden/dressing_side 0 Dressing_Side 0 !
+/salad/garden/dressing_side/yes 0 Dressing_Side_Yes 0
+/salad/garden/dressing_side/no 0 Dressing_Side_No 1
+/salad/garden/topping 0 Topping 0
+/salad/garden/topping/tomato 0 Tomato 1
+/salad/garden/topping/onion 0 Onion 1
+/salad/garden/topping/carrots 0 Carrots 0
+/salad/garden/topping/olives 0 Olives 0
+/salad/garden/meat 0 Meat 0
+/salad/garden/meat/chicken +2.00 Chicken 0
+/salad/garden/meat/sardines +2.00 Sardines 0
+/salad/garden/meat/turkey +2.00 Turkey 0
+`
+			}
+			
+			function order_source() {
+				
+				return `
+
+/drink/fountain 1
+/drink/fountain/size/large 1
+/drink/fountain/flavor/coke 1
+
+/side/fry 1
+/side/fry/size/large 1
+/side/fry/topping/cheese 1
+/side/fry/topping/chili 1
+
+/sandwich/burger 1
+/sandwich/burger/patty/turkey 1
+/sandwich/burger/topping/cheddar 1
+/sandwich/burger/topping/mayo 1
+/sandwich/burger/topping/mayo/amount/easy 1
+/sandwich/burger/drink/none 0
+/sandwich/burger/drink/fountain 1
+/sandwich/burger/drink/fountain/size/large 1
+/sandwich/burger/drink/fountain/flavor/coke 1
+/sandwich/burger/side/fry 1
+/sandwich/burger/side/fry/size/large 1
+/sandwich/burger/side/fry/topping/chili 1
+/sandwich/burger/side/fry/salt/salted 1
+/sandwich/burger/side/fry/season/seasoned 1
+/sandwich/burger/combo/large 1
+
+/salad/garden 1
+/salad/garden/dressing/ranch 1
+/salad/garden/dressing/ranch/amount/extra 1
+/salad/garden/dressing_side/no 1
+/salad/garden/topping/tomato 1
+/salad/garden/topping/onion 1
+/salad/garden/topping/carrots 1
+/salad/garden/topping/olives 1
+/salad/garden/meat/chicken 1
+`
+			}
+			
+			run()
+			
+		</script>
+	</body>
+</html>

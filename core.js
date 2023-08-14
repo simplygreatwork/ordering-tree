@@ -11,7 +11,7 @@ export function system_emit(message, data) {
 
 export function catalog_new(source) {
 	
-	let catalog = { source: source, tree: { name: '/', map: new Map() }, errors: [] }
+	let catalog = { source: source, tree: { name: '', map: new Map() }, errors: [] }
 	catalog_import(catalog, source)
 	return catalog
 }
@@ -24,7 +24,7 @@ export function catalog_import(catalog, source) {
 		line = line.trim()
 		if (line.length === 0) return
 		let entry = catalog_parse_line(catalog, line, index)
-		catalog_validate_entry(catalog, entry)
+		if (entry.alias) return catalog_alias(catalog, entry)
 		let node = tree
 		let parts = entry.path.split('/').slice(1)
 		parts.forEach(function(part, index) {
@@ -39,9 +39,25 @@ export function catalog_import(catalog, source) {
 	if (catalog.errors.length > 0) throw Error('Unstable catalog')
 }
 
+export function catalog_alias(catalog, entry) {
+	
+	let path = entry.path.split('/').slice(0, -1).join('/')
+	let a = catalog_find(catalog, path)
+	let b = catalog_find(catalog, entry.alias)
+	let node = structuredClone(b.node)
+	walk([node], Infinity, null, function(node, treepath) {
+		node.path = a.node.path + node.path
+	})
+	let key = entry.path.split('/').slice(-1).join('/')
+	a.node.map.set(key, node)
+}
+
 export function catalog_parse_line(catalog, line, index) {
 	
-	if (line.includes(':')) return catalog_parse_line_props(catalog, line, index)
+	let parts = line.split(' ')
+	let alias = parts.length > 1 && parts[1] == '='
+	if (alias) return catalog_parse_line_alias(catalog, line, index)
+	else if (line.includes(':')) return catalog_parse_line_props(catalog, line, index)
 	else return catalog_parse_line_basic(catalog, line, index)
 }
 
@@ -85,6 +101,15 @@ export function catalog_parse_line_props(catalog, line, index) {
 	return catalog_parse_line_process(catalog, entry)
 }
 
+export function catalog_parse_line_alias(catalog, line, index) {
+	
+	let parts = line.split(' ')
+	return {
+		path: parts[0],
+		alias: parts[2]
+	}
+}
+
 export function catalog_parse_line_process(catalog, entry) {
 	
 	let price = entry.price
@@ -109,6 +134,7 @@ export function catalog_parse_line_process(catalog, entry) {
 		if (! transforms[key]) return
 		entry[key] = transforms[key](entry[key])
 	})
+	catalog_validate_entry(catalog, entry)
 	return entry
 }
 
@@ -224,6 +250,11 @@ export function order_total(order) {
 		})
 	})
 	return price_as_dollars(total)
+	
+	//  Charge for item quantities which are greater than the default quantity.
+	//  If default quantity is 1 and quantity is 2, charge for the second only.
+	//  If default quantity is 0 and quantity is 2, charge for first and second.
+	//  Walk inside items only when the quantity is greater than zero.
 }
 
 export function order_validate(order) {
@@ -370,7 +401,10 @@ export function order_item_serialize(item, array) {
 }
 
 export function order_item_walk(item, array, depth, fn) {
-	walk(array, depth, null, fn)
+	
+	let treepath = catalog_find(system.catalog, item.node.path).treepath
+	treepath[treepath.length - 1] = item.node
+	walk(treepath, depth, null, fn)
 }
 
 export function order_item_walk_active(item, array, depth, fn) {
@@ -379,7 +413,9 @@ export function order_item_walk_active(item, array, depth, fn) {
 		if (level % 2 === 0 && node.quantity === 0) return false
 		return true
 	}
-	walk(array, depth, filter, fn)
+	let treepath = catalog_find(system.catalog, item.node.path).treepath
+	treepath[treepath.length - 1] = item.node
+	walk(treepath, depth, null, fn)
 }
 
 export function order_item_menus(item, fn) {
@@ -431,11 +467,31 @@ function find(node, path) {
 
 export function walk(treepath, depth, filter, fn) {
 	
+	let treepath_ = treepath
+	let magic = treepath.map(node => node.name).join('/')
+	console.log(`magic: ${magic}`)
 	depth = depth || Infinity
 	filter = filter || function() { return true }
 	if (treepath.length - 1 > depth) return
 	let node = treepath[treepath.length - 1]
-	if (! node.name) return
+	if (node.name === null || node.name === undefined) return
+	fn(node, treepath)
+	if (! filter(node, treepath, treepath.length - 1)) return
+	for (const key of node.map.keys()) {
+		let node_ = node.map.get(key)
+		// node_.name = key
+		let treepath_ = [...treepath, node_]
+		walk(treepath_, depth, filter, fn)
+	}
+}
+
+export function walk_(treepath, depth, filter, fn) {
+	
+	depth = depth || Infinity
+	filter = filter || function() { return true }
+	if (treepath.length - 1 > depth) return
+	let node = treepath[treepath.length - 1]
+	if (node.name === null || node.name === undefined) return
 	fn(node, treepath)
 	if (! filter(node, treepath, treepath.length - 1)) return
 	for (const key of node.map.keys()) {
