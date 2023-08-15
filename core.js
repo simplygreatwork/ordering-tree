@@ -407,7 +407,6 @@ export function order_item_walk(item, treepath, depth, fn) {
 	
 	treepath = catalog_find(system.catalog, item.node.path).treepath
 	treepath[treepath.length - 1] = item.node
-	treepath = [treepath[treepath.length - 1]]
 	walk(treepath, depth, null, fn)
 }
 
@@ -469,28 +468,9 @@ function find(node, path) {
 	}
 }
 
-export function walk_(treepath, depth, filter, fn) {
-	
-	let treepath_ = treepath
-	let magic = treepath.map(node => node.name).join('/')
-	console.log(`magic: ${magic}`)
-	depth = depth || Infinity
-	filter = filter || function() { return true }
-	if (treepath.length - 1 > depth) return
-	let node = treepath[treepath.length - 1]
-	if (node.name === null || node.name === undefined) return
-	fn(node, treepath)
-	if (! filter(node, treepath, treepath.length - 1)) return
-	for (const key of node.map.keys()) {
-		let node_ = node.map.get(key)
-		// node_.name = key
-		let treepath_ = [...treepath, node_]
-		walk(treepath_, depth, filter, fn)
-	}
-}
-
 export function walk(treepath, depth, filter, fn) {
 	
+	if (false) console.log(`full: ${treepath.map(node => node.name).join('/')}`)
 	depth = depth || Infinity
 	filter = filter || function() { return true }
 	if (treepath.length - 1 > depth) return
