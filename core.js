@@ -403,22 +403,19 @@ export function order_item_serialize(item, array) {
 	})
 }
 
-export function order_item_walk(item, treepath, depth, fn) {
+export function order_item_walk(item, treepath, depth, fn, filter) {
 	
 	treepath = catalog_find(system.catalog, item.node.path).treepath
 	treepath[treepath.length - 1] = item.node
-	walk(treepath, depth, null, fn)
+	walk(treepath, depth, filter, fn)
 }
 
 export function order_item_walk_active(item, treepath, depth, fn) {
 	
-	const filter = function(node, array, level) {
+	order_item_walk(item, treepath, depth, fn, function(node, array, level) {
 		if (level % 2 === 0 && node.quantity === 0) return false
 		return true
-	}
-	treepath = catalog_find(system.catalog, item.node.path).treepath
-	treepath[treepath.length - 1] = item.node
-	walk(treepath, depth, filter, fn)
+	})
 }
 
 export function order_item_menus(item, fn) {
