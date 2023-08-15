@@ -51,3 +51,8 @@ maybe walk filter can change the multiplier
 
 example for catalog import...
 let example = `/sandwich p:0 l:Burger q:0 m:no s:no`
+
+tell how many tests passed versus failed of total
+
+for order_append
+	ensure the path is /xxxxx/xxxxx

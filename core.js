@@ -349,14 +349,17 @@ export function order_item_find(item, path) {
 export function order_item_deflate(item) {
 	
 	order_item_walk(item, [item.node], Infinity, function(node, treepath) {
-		let parent = treepath[treepath.length - 2]
-		if (! parent) return
-		parent.map.set(node.name, {
-			map: node.map,
-			path: node.path,
-			name: node.name,
-			level: node.level,
-			quantity: node.quantity
+		let reserve = {}
+		Object.assign(reserve, node)
+		Object.keys(node).forEach(function(key) {
+			delete node[key]
+		})
+		Object.assign(node, {
+			map: reserve.map,
+			path: reserve.path,
+			name: reserve.name,
+			level: reserve.level,
+			quantity: reserve.quantity
 		})
 	})
 }
@@ -400,22 +403,23 @@ export function order_item_serialize(item, array) {
 	})
 }
 
-export function order_item_walk(item, array, depth, fn) {
+export function order_item_walk(item, treepath, depth, fn) {
 	
-	let treepath = catalog_find(system.catalog, item.node.path).treepath
+	treepath = catalog_find(system.catalog, item.node.path).treepath
 	treepath[treepath.length - 1] = item.node
+	treepath = [treepath[treepath.length - 1]]
 	walk(treepath, depth, null, fn)
 }
 
-export function order_item_walk_active(item, array, depth, fn) {
+export function order_item_walk_active(item, treepath, depth, fn) {
 	
 	const filter = function(node, array, level) {
 		if (level % 2 === 0 && node.quantity === 0) return false
 		return true
 	}
-	let treepath = catalog_find(system.catalog, item.node.path).treepath
+	treepath = catalog_find(system.catalog, item.node.path).treepath
 	treepath[treepath.length - 1] = item.node
-	walk(treepath, depth, null, fn)
+	walk(treepath, depth, filter, fn)
 }
 
 export function order_item_menus(item, fn) {
@@ -465,7 +469,7 @@ function find(node, path) {
 	}
 }
 
-export function walk(treepath, depth, filter, fn) {
+export function walk_(treepath, depth, filter, fn) {
 	
 	let treepath_ = treepath
 	let magic = treepath.map(node => node.name).join('/')
@@ -485,7 +489,7 @@ export function walk(treepath, depth, filter, fn) {
 	}
 }
 
-export function walk_(treepath, depth, filter, fn) {
+export function walk(treepath, depth, filter, fn) {
 	
 	depth = depth || Infinity
 	filter = filter || function() { return true }
