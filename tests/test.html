@@ -5,10 +5,10 @@
 		<title>Ordering Example: Unit Tests</title>
 	</head>
 	<body>
-		
 		<script type="module">
 			
 			import { console_init } from '../source/console.js'
+			import { test_suite, test_suite_run } from '../source/test.js'
 			import { system_new } from '../source/core.js'
 			import { catalog_new, catalog_import, catalog_find } from '../source/core.js'
 			import { order_new, order_append } from '../source/core.js'
@@ -21,13 +21,9 @@
 			function run() {
 				
 				console_init()
-				let tests = []
-				let it = function(label, fn) {
-					tests.push({ label: label, fn, fn })
-				}
-				
 				window.system = system_new()
-				
+				let { tests, it } = test_suite()
+					
 				it('appends an item', function() {
 					
 					system.catalog = catalog_new(`
@@ -296,15 +292,9 @@
 					`)
 				})
 				
-				let result = true
-				tests.forEach(function(each, index) {
-					let result_ = each.fn()
-					let label = each.label
-					if (label == '') label = `test ${index}`
-					console.log(`${result_ === true ? 'Passed test' : 'Failed test'} "${label}".`)
-					if (result_ === false) result = false 
-				})
-				return result
+				let result = test_suite_run(tests)
+				if (result) console.log(`All tests passed.`)
+				else console.log(`Some tests failed.`)
 			}
 			
 			function matches(a, b) {
@@ -313,9 +303,7 @@
 				return clean(a) == clean(b)
 			}
 			
-			let result = run()
-			if (result) console.log(`All tests passed.`)
-			else console.log(`Some tests failed.`)
+			run()
 			
 		</script>
 	</body>
