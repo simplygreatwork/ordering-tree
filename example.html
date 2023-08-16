@@ -17,6 +17,12 @@
 			import { order_validate } from './core.js'
 			import { order_serialize } from './core.js'
 			
+			let log_ = console.log
+			console.log = function() {
+				log_(...arguments)
+				write(...arguments)
+			}
+			
 			function run() {
 				
 				let system = window.system = system_new()
@@ -44,7 +50,7 @@
 					let items = record.items.map(function(each) {
 						return `${each.quantity} ${each.label}`
 					})
-					console.log(` ${record.menu.label}: ${items.join(', ')}`)
+					write(` ${record.menu.label}: ${items.join(', ')}`)
 				})
 				
 				console.log('\nORDER VALIDATE')
@@ -68,6 +74,17 @@
 				
 				console.log('\nORDER SERIALIZE')
 				console.log(`${order_serialize(order)}`)
+			}
+			
+			function write() {
+				
+				var div = document.createElement('div')
+				div.style.cssText = 'font-family:mono;font-size:75%'
+				let message = arguments[0]
+				message = message.replaceAll(' ', '&nbsp;')
+				message = message.replaceAll('\n', '<br>')
+				div.innerHTML = message
+				document.body.appendChild(div)
 			}
 			
 			function catalog_source() {

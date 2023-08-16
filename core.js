@@ -342,10 +342,6 @@ export function order_item_decrement(item, path) {
 	}
 }
 
-export function order_item_find(item, path) {
-	return find(item.node, path.split(item.path)[1])
-}
-
 export function order_item_deflate(item) {
 	
 	order_item_walk(item, [item.node], Infinity, function(node, treepath) {
@@ -403,21 +399,6 @@ export function order_item_serialize(item, array) {
 	})
 }
 
-export function order_item_walk(item, treepath, depth, fn, filter) {
-	
-	treepath = catalog_find(system.catalog, item.node.path).treepath
-	treepath[treepath.length - 1] = item.node
-	walk(treepath, depth, filter, fn)
-}
-
-export function order_item_walk_active(item, treepath, depth, fn) {
-	
-	order_item_walk(item, treepath, depth, fn, function(node, array, level) {
-		if (level % 2 === 0 && node.quantity === 0) return false
-		return true
-	})
-}
-
 export function order_item_menus(item, fn) {
 	
 	let array = catalog_find(system.catalog, item.path).treepath
@@ -439,13 +420,23 @@ export function order_item_menus(item, fn) {
 	})
 }
 
-export function array_to_path(array) {
+export function order_item_find(item, path) {
+	return find(item.node, path.split(item.path)[1])
+}
+
+export function order_item_walk(item, treepath, depth, fn, filter) {
 	
-	let result = ['']
-	array.slice(1).forEach(function(each, index) {
-		result.push(each.name)
+	treepath = catalog_find(system.catalog, item.node.path).treepath
+	treepath[treepath.length - 1] = item.node
+	walk(treepath, depth, filter, fn)
+}
+
+export function order_item_walk_active(item, treepath, depth, fn) {
+	
+	order_item_walk(item, treepath, depth, fn, function(node, array, level) {
+		if (level % 2 === 0 && node.quantity === 0) return false
+		return true
 	})
-	return result.join('/')
 }
 
 function find(node, path) {
@@ -487,4 +478,13 @@ export function price_as_cents(price) {
 
 export function price_as_dollars(price) {
 	return (price / 100).toFixed(2)
+}
+
+export function array_to_path(array) {
+	
+	let result = ['']
+	array.slice(1).forEach(function(each, index) {
+		result.push(each.name)
+	})
+	return result.join('/')
 }

@@ -17,6 +17,12 @@
 			import { order_print, order_total } from './core.js'
 			import { price_as_dollars } from './core.js'
 			
+			let log_ = console.log
+			console.log = function() {
+				log_(...arguments)
+				write(...arguments)
+			}
+			
 			function run() {
 				
 				let tests = []
@@ -309,6 +315,14 @@
 				
 				let clean = (x => x.trim().split('\n').map(x => x.trim()).filter(x => x.length > 0).join('\n'))
 				return clean(a) == clean(b)
+			}
+			
+			function write() {
+				
+				var div = document.createElement('div')
+				div.style.cssText = 'font-family:mono;font-size:75%';
+				div.innerHTML = arguments[0]
+				document.body.appendChild(div)
 			}
 			
 			let result = run()

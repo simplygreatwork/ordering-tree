@@ -56,3 +56,6 @@ tell how many tests passed versus failed of total
 
 for order_append
 	ensure the path is /xxxxx/xxxxx
+
+maybe use command line like arguments
+	
