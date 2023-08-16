@@ -8,23 +8,19 @@
 		
 		<script type="module">
 			
-			import { system_new } from './core.js'
-			import { catalog_new, catalog_find, catalog_walk } from './core.js'
-			import { order_new, order_append } from './core.js'
-			import { order_print } from './core.js'
-			import { order_item_increment, order_item_decrement } from './core.js'
-			import { order_item_menus } from './core.js'
-			import { order_validate } from './core.js'
-			import { order_serialize } from './core.js'
-			
-			let log_ = console.log
-			console.log = function() {
-				log_(...arguments)
-				write(...arguments)
-			}
+			import { console_init } from '../source/console.js'
+			import { system_new } from '../source/core.js'
+			import { catalog_new, catalog_find, catalog_walk } from '../source/core.js'
+			import { order_new, order_append } from '../source/core.js'
+			import { order_print } from '../source/core.js'
+			import { order_item_increment, order_item_decrement } from '../source/core.js'
+			import { order_item_menus } from '../source/core.js'
+			import { order_validate } from '../source/core.js'
+			import { order_serialize } from '../source/core.js'
 			
 			function run() {
 				
+				console_init()
 				let system = window.system = system_new()
 				let catalog = system.catalog = catalog_new(catalog_source())
 				console.log('\nFULL CATALOG')
@@ -50,7 +46,7 @@
 					let items = record.items.map(function(each) {
 						return `${each.quantity} ${each.label}`
 					})
-					write(` ${record.menu.label}: ${items.join(', ')}`)
+					console.log(` ${record.menu.label}: ${items.join(', ')}`)
 				})
 				
 				console.log('\nORDER VALIDATE')
@@ -74,17 +70,6 @@
 				
 				console.log('\nORDER SERIALIZE')
 				console.log(`${order_serialize(order)}`)
-			}
-			
-			function write() {
-				
-				var div = document.createElement('div')
-				div.style.cssText = 'font-family:mono;font-size:75%'
-				let message = arguments[0]
-				message = message.replaceAll(' ', '&nbsp;')
-				message = message.replaceAll('\n', '<br>')
-				div.innerHTML = message
-				document.body.appendChild(div)
 			}
 			
 			function catalog_source() {

@@ -2,29 +2,25 @@
 <html>
 	<head>
 		<meta name="viewport" content="user-scalable=1.0,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
-		<title>Ordering Example: Main</title>
+		<title>Ordering Example: Unit Tests</title>
 	</head>
 	<body>
 		
 		<script type="module">
 			
-			import { system_new } from './core.js'
-			import { catalog_new, catalog_import, catalog_find } from './core.js'
-			import { order_new, order_append } from './core.js'
-			import { order_item_increment, order_item_decrement, order_item_set } from './core.js'
-			import { order_validate } from './core.js'
-			import { order_serialize } from './core.js'
-			import { order_print, order_total } from './core.js'
-			import { price_as_dollars } from './core.js'
-			
-			let log_ = console.log
-			console.log = function() {
-				log_(...arguments)
-				write(...arguments)
-			}
+			import { console_init } from '../source/console.js'
+			import { system_new } from '../source/core.js'
+			import { catalog_new, catalog_import, catalog_find } from '../source/core.js'
+			import { order_new, order_append } from '../source/core.js'
+			import { order_item_increment, order_item_decrement, order_item_set } from '../source/core.js'
+			import { order_validate } from '../source/core.js'
+			import { order_serialize } from '../source/core.js'
+			import { order_print, order_total } from '../source/core.js'
+			import { price_as_dollars } from '../source/core.js'
 			
 			function run() {
 				
+				console_init()
 				let tests = []
 				let it = function(label, fn) {
 					tests.push({ label: label, fn, fn })
@@ -305,7 +301,7 @@
 					let result_ = each.fn()
 					let label = each.label
 					if (label == '') label = `test ${index}`
-					console.log(`${result_ === true ? 'passed' : 'failed'} "${label}"`)
+					console.log(`${result_ === true ? 'Passed test' : 'Failed test'} "${label}".`)
 					if (result_ === false) result = false 
 				})
 				return result
@@ -313,20 +309,13 @@
 			
 			function matches(a, b) {
 				
-				let clean = (x => x.trim().split('\n').map(x => x.trim()).filter(x => x.length > 0).join('\n'))
+				const clean = (x => x.trim().split('\n').map(x => x.trim()).filter(x => x.length > 0).join('\n'))
 				return clean(a) == clean(b)
 			}
 			
-			function write() {
-				
-				var div = document.createElement('div')
-				div.style.cssText = 'font-family:mono;font-size:75%';
-				div.innerHTML = arguments[0]
-				document.body.appendChild(div)
-			}
-			
 			let result = run()
-			console.log(`all tests passed: ${result}`)
+			if (result) console.log(`All tests passed.`)
+			else console.log(`Some tests failed.`)
 			
 		</script>
 	</body>
