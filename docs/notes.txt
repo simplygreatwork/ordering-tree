@@ -55,7 +55,9 @@ let example = `/sandwich p:0 l:Burger q:0 m:no s:no`
 tell how many tests passed versus failed of total
 
 for order_append
-	ensure the path is /xxxxx/xxxxx
+	ensure the path is /xxxxx/xxxxx (at level 2)
 
 maybe use command line like arguments
 	
+when validating an order
+	return the node which requires a choice

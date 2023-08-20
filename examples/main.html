@@ -42,9 +42,7 @@
 				
 				console.log('\nORDER ITEM MENUS VIEW')
 				order_item_menus(item, function(record) {
-					let items = record.items.map(function(each) {
-						return `${each.quantity} ${each.label}`
-					})
+					let items = record.items.map(each => `${each.quantity} ${each.label}`)
 					console.log(` ${record.menu.label}: ${items.join(', ')}`)
 				})
 				
@@ -61,9 +59,7 @@
 				
 				console.log('\nORDER ITEM MENUS VIEW')
 				order_item_menus(item, function(record) {
-					let items = record.items.map(function(each) {
-						return `${each.quantity} ${each.label}`
-					})
+					let items = record.items.map(each => `${each.quantity} ${each.label}`)
 					console.log(` ${record.menu.label}: ${items.join(', ')}`)
 				})
 				

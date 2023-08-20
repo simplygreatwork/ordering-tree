@@ -420,6 +420,15 @@ export function order_item_menus(item, fn) {
 	})
 }
 
+export function order_item_menus_collect(item, fn) {
+	
+	let result = []
+	order_item_menus(item, function(record) {
+		result.push({ label: record.menu.label, items: record.items })
+	})
+	return result
+}
+
 export function order_item_find(item, path) {
 	return find(item.node, path.split(item.path)[1])
 }

@@ -1,5 +1,5 @@
 
-export function test_suite() {
+export function test_suite_new() {
 	
 	let tests = []
 	let it = function(label, fn) {
@@ -8,8 +8,9 @@ export function test_suite() {
 	return { tests, it }
 }
 
-export function test_suite_run(tests) {
+export function test_suite_run(suite) {
 	
+	let { tests } = suite
 	let result = true
 	tests.forEach(function(each, index) {
 		let result_ = each.fn()

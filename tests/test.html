@@ -8,7 +8,7 @@
 		<script type="module">
 			
 			import { console_init } from '../source/console.js'
-			import { test_suite, test_suite_run } from '../source/test.js'
+			import { test_suite_new, test_suite_run } from '../source/test.js'
 			import { system_new } from '../source/core.js'
 			import { catalog_new, catalog_import, catalog_find } from '../source/core.js'
 			import { order_new, order_append } from '../source/core.js'
@@ -22,8 +22,9 @@
 				
 				console_init()
 				window.system = system_new()
-				let { tests, it } = test_suite()
-					
+				let suite = test_suite_new()
+				let { it } = suite
+				
 				it('appends an item', function() {
 					
 					system.catalog = catalog_new(`
@@ -292,7 +293,7 @@
 					`)
 				})
 				
-				let result = test_suite_run(tests)
+				let result = test_suite_run(suite)
 				if (result) console.log(`All tests passed.`)
 				else console.log(`Some tests failed.`)
 			}

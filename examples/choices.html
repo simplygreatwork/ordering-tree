@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="user-scalable=1.0,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
+		<title>Ordering Example: Main</title>
+		<style>
+			.menus div {
+				margin-bottom:20px;
+				font-family:mono;font-size:75%;
+			}
+			.menus span {
+				border:1px solid gray;
+				margin-bottom:50px;
+				margin-right:10px;
+				padding:6px;
+			}
+			
+		</style>
+	</head>
+	<body>
+		<script type="module">
+			
+			import { console_init } from '../source/console.js'
+			import { system_new } from '../source/core.js'
+			import { catalog_new, catalog_find, catalog_walk } from '../source/core.js'
+			import { order_new, order_append } from '../source/core.js'
+			import { order_print } from '../source/core.js'
+			import { order_item_increment, order_item_decrement } from '../source/core.js'
+			import { order_item_menus, order_item_menus_collect } from '../source/core.js'
+			import { order_validate } from '../source/core.js'
+			import { order_serialize } from '../source/core.js'
+			
+			function run() {
+				
+				console_init()
+				let system = window.system = system_new()
+				let catalog = system.catalog = catalog_new(catalog_source())
+				let order = order_new(order_source())
+				let item = order.items[order.items.length - 1]
+				
+				system.div = document.createElement('div')
+				document.body.appendChild(system.div)
+				initialize_events(item)
+				system.div.innerHTML = render_order_item_menus(item)
+				focus_sibling(1)
+			}
+			
+			function initialize_events(item) {
+				
+				document.addEventListener('keydown', function(event) {
+					event = event || window.event
+					let path = document.activeElement.dataset.path
+					if (! path) return
+					let dict = { 'ArrowUp': order_item_increment, 'ArrowDown': order_item_decrement }
+					let fn = dict[event.key]
+					if (! fn) return
+					event.preventDefault()
+					fn(item, path)
+					system.div.innerHTML = render_order_item_menus(item)
+					if (! system.focus) return
+					document.querySelector(`[data-path="${system.focus}"]`).focus()
+				})
+				
+				document.addEventListener('keydown', function(event) {
+					event = event || window.event
+					let dict = { 'ArrowLeft': focus_sibling.bind(-1), 'ArrowRight': focus_sibling.bind(1) }
+					let fn = dict[event.key]
+					if (! fn) return
+					event.preventDefault()
+					fn(fn.this)
+				})
+				
+				document.addEventListener('focusin', function(event) {
+					system.focus = document.activeElement.dataset.path
+				})
+			}
+			
+			function render_order_item_menus(item) {
+				
+				return order_item_menus_collect(item).map(menu => `
+					<div class="menus">
+						<div>${menu.label}</div>
+						<div>${menu.items.map(
+							item => `<span data-path="${item.path}" tabindex="0">${item.quantity} ${item.label}</span>`
+						).join('')}</div>
+					</div>
+				`).join(`\n`)
+			}
+			
+			function focus_sibling(direction) {
+				
+				console.log(`focus_sibling: ${direction}`)
+				let index = null
+				let elements = document.querySelectorAll(`[data-path]`)
+				elements.forEach(function(each, index_) {
+					if (index) elements[index + 1].focus()
+					if (each.dataset.path) index = index_
+				})
+			}
+			
+			function catalog_source() {
+				
+				return `
+
+/sandwich 0 Sandwiches 0
+/sandwich/burger +4.25 Burger 0 #
+/sandwich/burger/patty 0 Patty 0 !
+/sandwich/burger/patty/beef 0 Beef 1
+/sandwich/burger/patty/turkey +0.25 Turkey 0
+/sandwich/burger/patty/veggie 0 Veggie 0
+/sandwich/burger/topping 0 Toppings 0
+/sandwich/burger/topping/cheddar +0.50 Cheddar 1 #
+/sandwich/burger/topping/lettuce 0 Lettuce 1
+/sandwich/burger/topping/tomato 0 Tomato 1
+/sandwich/burger/topping/onion 0 Onion 1
+/sandwich/burger/topping/mayo 0 Mayo 1
+/sandwich/burger/topping/mayo/amount/easy 0 Easy 0
+/sandwich/burger/topping/mustard 0 Mustard 0
+/sandwich/burger/topping/ketchup 0 Ketchup 0
+/sandwich/burger/drink 0 Drinks 0 !
+/sandwich/burger/drink/none 0 No_Drink 1
+/sandwich/burger/drink/fountain +1.09 Fountain_Drink 0
+/sandwich/burger/drink/fountain/size 0 Size 0 !
+/sandwich/burger/drink/fountain/size/small 0 Small 1
+/sandwich/burger/drink/fountain/size/medium +0.10 Medium 0
+/sandwich/burger/drink/fountain/size/large +0.10 Large 0
+/sandwich/burger/drink/fountain/flavor 0 Flavor 0 !
+/sandwich/burger/drink/fountain/flavor/coke 0 Coke 0
+/sandwich/burger/drink/fountain/flavor/pepsi 0 Pepsi 0
+/sandwich/burger/drink/fountain/ice 0 Ice 0 !
+/sandwich/burger/drink/fountain/ice/easy 0 Easy_Ice 0
+/sandwich/burger/drink/fountain/ice/regular 0 Regular_Ice 1
+/sandwich/burger/drink/fountain/ice/extra 0 Extra_Ice 0
+/sandwich/burger/drink/can +0.99 Canned_Drink 0
+/sandwich/burger/drink/can/flavor 0 Flavor 0 !
+/sandwich/burger/drink/can/flavor/coke 0 Coke 0
+/sandwich/burger/drink/can/flavor/pepsi 0 Pepsi 0
+/sandwich/burger/side 0 Side 0 !
+/sandwich/burger/side/none 0 No_Side 0
+/sandwich/burger/side/fry +1.49 Fry 1
+/sandwich/burger/side/fry/size 0 Size 0 !
+/sandwich/burger/side/fry/size/small 0 Small 1
+/sandwich/burger/side/fry/size/medium +0.20 Medium 0
+/sandwich/burger/side/fry/size/large +0.20 Large 0
+/sandwich/burger/side/fry/topping 0 Topping 0
+/sandwich/burger/side/fry/topping/butter 0 Butter 0
+/sandwich/burger/side/fry/topping/cheese 0 Cheese 0
+/sandwich/burger/side/fry/topping/sour_cream 0 Sour_Cream 1
+/sandwich/burger/side/fry/topping/chives 0 Chives 1
+/sandwich/burger/side/fry/topping/bacon 0 Bacon 0
+/sandwich/burger/side/fry/topping/chili +0.75 Chili 0
+/sandwich/burger/side/fry/topping/loaded 0 Loaded 0
+/sandwich/burger/side/fry/salt 0 Salt 0 !
+/sandwich/burger/side/fry/salt/salted 0 Salted 1
+/sandwich/burger/side/fry/salt/unsalted 0 Unsalted 0
+/sandwich/burger/side/fry/season 0 Season 0 !
+/sandwich/burger/side/fry/season/seasoned 0 Seasoned 1
+/sandwich/burger/side/fry/season/unseasoned 0 Unseasoned 0
+/sandwich/burger/side/potato +1.49 Potato 0
+/sandwich/burger/side/potato/topping 0 Topping 0
+/sandwich/burger/side/potato/topping/butter 0 Butter 0
+/sandwich/burger/side/potato/topping/cheese 0 Cheese 0
+/sandwich/burger/side/potato/topping/sour_cream 0 Sour_Cream 1
+/sandwich/burger/side/potato/topping/chives 0 Chives 1
+/sandwich/burger/side/potato/topping/bacon 0 Bacon 0
+/sandwich/burger/side/potato/topping/chili +0.75 Chili 0
+/sandwich/burger/side/potato/topping/loaded 0 Loaded 1
+/sandwich/burger/combo 0 Combo 0 !
+/sandwich/burger/combo/none 0 No_Combo 1
+/sandwich/burger/combo/small +2.00 Small_Combo 0
+/sandwich/burger/combo/medium +2.50 Medium_Combo 0
+/sandwich/burger/combo/large +3.00 Large_Combo 0
+/sandwich/chicken +5.25 Chicken_Sandwich 0
+`
+			}
+			
+			function order_source() {
+				
+				return `
+
+/sandwich/burger 1
+/sandwich/burger/patty/beef 1
+/sandwich/burger/topping/cheddar 1
+/sandwich/burger/topping/mayo 1
+/sandwich/burger/topping/mayo/amount/easy 1
+/sandwich/burger/drink/fountain 1
+/sandwich/burger/drink/fountain/size/large 1
+/sandwich/burger/drink/fountain/flavor/coke 1
+/sandwich/burger/side/fry 1
+/sandwich/burger/side/fry/size/large 1
+/sandwich/burger/side/fry/topping/chili 1
+/sandwich/burger/side/fry/salt/salted 1
+/sandwich/burger/side/fry/season/seasoned 1
+/sandwich/burger/combo/large 1
+`
+			}
+			
+			run()
+			
+		</script>
+	</body>
+</html>
