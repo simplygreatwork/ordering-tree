@@ -6,13 +6,18 @@
 		<style>
 			.menus div {
 				margin-bottom:20px;
-				font-family:mono;font-size:75%;
+				font-family:arial;font-size:90%;
+				font-weight:900;
 			}
 			.menus span {
 				border:1px solid gray;
 				margin-bottom:50px;
 				margin-right:10px;
-				padding:6px;
+				padding:6px 14px 6px 14px;
+				border-radius:30px;
+				border:1px solid;
+				color:white;
+				background:royalblue;
 			}
 			
 		</style>
@@ -42,8 +47,9 @@
 				document.body.appendChild(system.div)
 				initialize_events(item)
 				system.div.innerHTML = render_order_item_menus(item)
-				focus_sibling(1)
 			}
+			
+			// use color to indicate whether modifier is ON
 			
 			function initialize_events(item) {
 				
@@ -57,21 +63,24 @@
 					event.preventDefault()
 					fn(item, path)
 					system.div.innerHTML = render_order_item_menus(item)
-					if (! system.focus) return
-					document.querySelector(`[data-path="${system.focus}"]`).focus()
+					if (! system.path) return
+					document.querySelector(`[data-path="${system.path}"]`).focus()
 				})
 				
 				document.addEventListener('keydown', function(event) {
 					event = event || window.event
-					let dict = { 'ArrowLeft': focus_sibling.bind(-1), 'ArrowRight': focus_sibling.bind(1) }
-					let fn = dict[event.key]
-					if (! fn) return
+					link_list()
+					if (! system.focus) return
+					let dict = { 'ArrowLeft': system.focus.previous, 'ArrowRight': system.focus.next }
+					let object = dict[event.key]
+					if (! object) return
 					event.preventDefault()
-					fn(fn.this)
+					object.focus()
 				})
 				
 				document.addEventListener('focusin', function(event) {
-					system.focus = document.activeElement.dataset.path
+					system.focus = document.activeElement
+					system.path = document.activeElement.dataset.path
 				})
 			}
 			
@@ -87,14 +96,12 @@
 				`).join(`\n`)
 			}
 			
-			function focus_sibling(direction) {
+			function link_list() {
 				
-				console.log(`focus_sibling: ${direction}`)
-				let index = null
 				let elements = document.querySelectorAll(`[data-path]`)
-				elements.forEach(function(each, index_) {
-					if (index) elements[index + 1].focus()
-					if (each.dataset.path) index = index_
+				elements.forEach(function(each, index) {
+					each.previous = index > 0 ? elements[index - 1] : elements[elements.length]
+					each.next = index < elements.length - 1 ? elements[index + 1] : elements[0]
 				})
 			}
 			
