@@ -61,3 +61,5 @@ maybe use command line like arguments
 	
 when validating an order
 	return the node which requires a choice
+
+need to import test-suite fromm its own package

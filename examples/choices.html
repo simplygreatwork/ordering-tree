@@ -43,10 +43,10 @@
 				let order = order_new(order_source())
 				let item = order.items[order.items.length - 1]
 				
-				system.div = document.createElement('div')
-				document.body.appendChild(system.div)
+				system.container = document.createElement('div')
+				document.body.appendChild(system.container)
 				initialize_events(item)
-				system.div.innerHTML = render_order_item_menus(item)
+				system.container.innerHTML = render_order_item_menus(item)
 			}
 			
 			// use color to indicate whether modifier is ON
@@ -55,15 +55,14 @@
 				
 				document.addEventListener('keydown', function(event) {
 					event = event || window.event
-					let path = document.activeElement.dataset.path
-					if (! path) return
+					system.path = document.activeElement.dataset.path
+					if (! system.path) return
 					let dict = { 'ArrowUp': order_item_increment, 'ArrowDown': order_item_decrement }
 					let fn = dict[event.key]
 					if (! fn) return
 					event.preventDefault()
-					fn(item, path)
-					system.div.innerHTML = render_order_item_menus(item)
-					if (! system.path) return
+					fn(item, system.path)
+					system.container.innerHTML = render_order_item_menus(item)
 					document.querySelector(`[data-path="${system.path}"]`).focus()
 				})
 				
