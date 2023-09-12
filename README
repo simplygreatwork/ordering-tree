@@ -1,6 +1,6 @@
 
 == Install ==
 
-git clone git@github.com:simplygreatwork/ordering-tree.git && \
-git clone git@github.com:simplygreatwork/ordering-flat.git && \
-git clone git@github.com:simplygreatwork/ordering-private.git
+git clone git@github.com:simplygreatwork/ordering-tree-private.git && \
+git clone git@github.com:simplygreatwork/html-console.git && \
+git clone git@github.com:simplygreatwork/test-suite.git

@@ -2,12 +2,16 @@
 <html>
 	<head>
 		<meta name="viewport" content="user-scalable=1.0,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
-		<title>Ordering Example: Unit Tests</title>
+		<title>Tests</title>
 	</head>
 	<body>
+		<script type="importmap">{"imports": {
+			"html-console": "../../../html-console/module.js",
+			"test-suite": "../../../test-suite/module.js"
+		}}</script>
 		<script type="module">
 			
-			import { console_init } from '../source/console.js'
+			import { console_init } from 'html-console'
 			import { test_suite_new, test_suite_run } from '../source/test.js'
 			import { system_new } from '../source/core.js'
 			import { catalog_new, catalog_import, catalog_find } from '../source/core.js'
@@ -20,7 +24,7 @@
 			
 			function run() {
 				
-				console_init()
+				console_init('body')
 				window.system = system_new()
 				let suite = test_suite_new()
 				let { it } = suite

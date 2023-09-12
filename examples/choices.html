@@ -2,7 +2,11 @@
 <html>
 	<head>
 		<meta name="viewport" content="user-scalable=1.0,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
-		<title>Ordering Example: Main</title>
+		<title>Example</title>
+		<script type="importmap">{"imports": {
+			"html-console": "../../../html-console/module.js",
+			"test-suite": "../../../test-suite/module.js"
+		}}</script>
 		<style>
 			.menus div {
 				margin-bottom:20px;
@@ -21,11 +25,9 @@
 			}
 			
 		</style>
-	</head>
-	<body>
 		<script type="module">
 			
-			import { console_init } from '../source/console.js'
+			import { console_init } from 'html-console'
 			import { system_new } from '../source/core.js'
 			import { catalog_new, catalog_find, catalog_walk } from '../source/core.js'
 			import { order_new, order_append } from '../source/core.js'
@@ -37,7 +39,7 @@
 			
 			function run() {
 				
-				console_init()
+				console_init('body')
 				let system = window.system = system_new()
 				let catalog = system.catalog = catalog_new(catalog_source())
 				let order = order_new(order_source())
@@ -204,5 +206,7 @@
 			run()
 			
 		</script>
+	</head>
+	<body>
 	</body>
 </html>
